@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>4UH</title>
+  <style>
+    /* variables de diseno configurables */
+    :root {
+      --bg-color: #dcabc3;
+      --card-bg: #ffdfef;
+      --accent: #5e3f27;
+      --accent-hover: #9e6337;
+      --text-main: #1b1b1d;
+      --text-dim: #1a1d21;
+      --input-bg: rgba(255, 255, 255, 0.08);
+      --border-color: rgba(255, 255, 255, 0.12);
+      --radius: 16px;
+    }
+
+    /* reseteo y fondo general */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      /* si agregas fondo.png en assets puedes descomentar la siguiente linea: */
+      /* background-image: url('../assets/fondo.png'); */
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: var(--text-main);
+      overflow: hidden;
+    }
+
+    /* tarjeta principal con efecto de vidrio */
+    .app-card {
+      width: 420px;
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    /* cabecera con avatar y saludo */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .header img {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+      transition: transform 0.2s ease;
+    }
+
+    .header img:hover {
+      transform: scale(1.05);
+    }
+
+    .header h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+
+    /* pestañas */
+    .tabs {
+      display: flex;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: var(--text-dim);
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    /* formularios y campos */
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      color: var(--text-main);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    select option {
+      background: #2a2e3d;
+      color: #fff;
+    }
+
+    /* botones de accion */
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease;
+    }
+
+    .btn-submit:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-submit:active {
+      transform: scale(0.98);
+    }
+
+    /* caja de resultado */
+    .result-box {
+      margin-top: 18px;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 10px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.2);
+      font-size: 0.9rem;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .result-box.error {
+      color: #ff6b6b;
+      border: 1px solid rgba(255, 107, 107, 0.3);
+    }
+
+    .result-box.success {
+      color: #000000;
+      border: 1px solid rgba(46, 204, 113, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-card">
+    <!-- cabecera -->
+    <div class="header">
+      <img id="avatar" src="../assets/personaje_pensando.png" alt="Avatar" onerror="this.style.display='none'">
+      <h2 id="txtSaludo">Cargando...</h2>
+    </div>
+
+    <!-- navegacion por pestanas -->
+    <div class="tabs">
+      <button class="tab-btn active" id="tabBtnEsc" onclick="cambiarPestana('esc')">Escalas</button>
+      <button class="tab-btn" id="tabBtnUni" onclick="cambiarPestana('uni')">Unidades</button>
+    </div>
+
+    <!-- panel 1: escalas -->
+    <div id="panelEsc" class="tab-content active">
+      <div class="form-group">
+        <label id="lblMedida">Medida a convertir (cm):</label>
+        <input type="text" id="inMedida" placeholder="ej. 15.5">
+      </div>
+      <div class="form-group">
+        <label id="lblEscAnt">Escala actual:</label>
+        <input type="text" id="inEscAnt" placeholder="ej. 1:250 o 250">
+      </div>
+      <div class="form-group">
+        <label id="lblEscNue">Escala destino:</label>
+        <input type="text" id="inEscNue" placeholder="ej. 1:75 o 75">
+      </div>
+      <button class="btn-submit" id="btnCalcEsc" onclick="ejecutarEscalas()">Calcular</button>
+      <div class="result-box" id="resEsc">Ingresa los datos para calcular</div>
+    </div>
+
+    <!-- panel 2: unidades -->
+    <div id="panelUni" class="tab-content">
+      <div class="form-group">
+        <label id="lblValor">Valor a transformar:</label>
+        <input type="text" id="inValorUni" placeholder="ej. 10.5">
+      </div>
+      <div class="form-group">
+        <label>Desde:</label>
+        <select id="selOrigen"></select>
+      </div>
+      <div class="form-group">
+        <label>Hacia:</label>
+        <select id="selDestino"></select>
+      </div>
+      <button class="btn-submit" id="btnCalcUni" onclick="ejecutarUnidades()">Convertir</button>
+      <div class="result-box" id="resUni">Selecciona las unidades</div>
+    </div>
+  </div>
+
+  <script>
+    let configApp = null;
+
+    // sincronizacion inicial al cargar la ventana
+    window.addEventListener('pywebviewready', async () => {
+      configApp = await window.pywebview.api.obtener_configuracion();
+      const txt = configApp.textos;
+
+      // asignar textos segun configuracion
+      document.getElementById('txtSaludo').innerText = txt.saludo;
+      document.getElementById('tabBtnEsc').innerText = txt.tab_escalas;
+      document.getElementById('tabBtnUni').innerText = txt.tab_unidades;
+      document.getElementById('lblMedida').innerText = txt.lbl_medida;
+      document.getElementById('lblEscAnt').innerText = txt.lbl_esc_ant;
+      document.getElementById('lblEscNue').innerText = txt.lbl_esc_nue;
+      document.getElementById('btnCalcEsc').innerText = txt.btn_escala;
+      document.getElementById('lblValor').innerText = txt.lbl_valor;
+      document.getElementById('btnCalcUni').innerText = txt.btn_unidad;
+
+      // cargar avatar inicial
+      document.getElementById('avatar').src = txt.img_inicial;
+
+      // poblar selects de unidades
+      const selOri = document.getElementById('selOrigen');
+      const selDes = document.getElementById('selDestino');
+      selOri.innerHTML = '';
+      selDes.innerHTML = '';
+
+      configApp.unidades.forEach(u => {
+        selOri.add(new Option(u, u));
+        selDes.add(new Option(u, u));
+      });
+
+      selOri.value = "Metros (m)";
+      selDes.value = "Centímetros (cm)";
+    });
+
+    // cambio entre pestanas
+    function cambiarPestana(tipo) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+      if (tipo === 'esc') {
+        document.getElementById('tabBtnEsc').classList.add('active');
+        document.getElementById('panelEsc').classList.add('active');
+      } else {
+        document.getElementById('tabBtnUni').classList.add('active');
+        document.getElementById('panelUni').classList.add('active');
+      }
+    }
+
+    // llamada de calculo de escalas
+    async function ejecutarEscalas() {
+      const m = document.getElementById('inMedida').value;
+      const ea = document.getElementById('inEscAnt').value;
+      const en = document.getElementById('inEscNue').value;
+      const box = document.getElementById('resEsc');
+
+      const res = await window.pywebview.api.calcular_escala(m, ea, en);
+      box.className = 'result-box ' + (res.ok ? 'success' : 'error');
+      box.innerText = res.ok ? res.resultado : res.msg;
+
+      // alternar avatar segun exito o fallo
+      if (configApp) {
+        document.getElementById('avatar').src = res.ok ? configApp.textos.img_exito : configApp.textos.img_espera;
+      }
+    }
+
+    // llamada de conversion de unidades
+    async function ejecutarUnidades() {
+      const v = document.getElementById('inValorUni').value;
+      const o = document.getElementById('selOrigen').value;
+      const d = document.getElementById('selDestino').value;
+      const box = document.getElementById('resUni');
+
+      const res = await window.pywebview.api.convertir_unidades(v, o, d);
+      box.className = 'result-box ' + (res.ok ? 'success' : 'error');
+      box.innerText = res.ok ? res.resultado : res.msg;
+
+      if (configApp) {
+        document.getElementById('avatar').src = res.ok ? configApp.textos.img_exito : configApp.textos.img_espera;
+      }
+    }
+  </script>
+</body>
+</html>
